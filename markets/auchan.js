@@ -521,7 +521,7 @@ async function addProducts(page, products) {
 
             productsAdded.push(product);
         } catch (error) {
-            await page.screenshot({ path: './lastScreenshot.png' });
+            // await page.screenshot({ path: './lastScreenshot.png' });
             await delay(500);
             logError(`[${index + 1}/${products.length}] ### Error ### getting product url error`, error && error.message);
             let message = { "message": "Produto " + product.Name + " , erro ao ir extrair informação ao url" + product.Url, "sucess": "true" };

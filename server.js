@@ -1506,8 +1506,14 @@ app.post("/AddUserProductsToOnlineCartsV2", async (req, res) => {
 });
 
 async function AddUserProductsToOnlineCartsV2mine() {
+    //first request prices updates
     var _storeIds = '1,2';
     var _userId = '9ff8224f-17cf-49fb-b555-05779a13eb40';
+    
+    var _updatePrices = await fetch('https://lisie.app/api/UserLists/UpdateUserProducts?userid=' + _userId);
+
+    // return;
+    
     var _myProducts = await fetch('https://lisie.app/api/online/GetStoresProductsToAddToOnlineStoreCart?userid=' + _userId + '&storeIds=' + _storeIds);
     // var _myProducts = await fetch('http://localhost:4430/api/online/GetStoresProductsToAddToOnlineStoreCart?userid=' + _userId + '&storeIds=' + _storeIds);
     var _myProductsJson = await _myProducts.text();

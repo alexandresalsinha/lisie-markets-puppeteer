@@ -22,6 +22,47 @@ const BrowserArgs = [
     "--disable-gpu",
     "--lang=en-US,en"
 ];
+
+function getLoginFrame(page) {
+  return page.frames().find((f) => /login\.continente\.pt/i.test(f.url()));
+}
+
+async function findCaptchaFrame(frame, timeout = 5000) {
+  const captchaSelector = '#RegistrationUser > div.altcha-container > altcha-widget > div';
+  try {
+    await frame.waitForSelector(captchaSelector, { visible: true, timeout });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function findCaptchaResolvedFrame(frame, timeout = 500000) {
+  const captchaSelector = '#RegistrationUser > div.altcha-container > altcha-widget > div';
+  try {
+    await frame.waitForFunction(
+      (selector) => {
+        const el = document.querySelector(selector);
+        return !!el && el.textContent.trim() === 'Verificado';
+      },
+      { timeout },
+      captchaSelector
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function clickAvancar(frame) {
+  await frame.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button')).find((b) =>
+      /avan/i.test(b.innerText)
+    );
+    if (btn) btn.click();
+  });
+}
+
 async function login(username, password, browser, page) {
     console.log("Authenticating continente")
     var _loggedIn = false;
@@ -77,10 +118,25 @@ async function login(username, password, browser, page) {
         await frame.click('#RegistrationUser > div.h-full.w-full.flex.flex-col.gap-4.justify-center.items-center > button')
         console.log('typing username: ' + username);
         await page.waitForTimeout(1000)
+        
+        
+        const captchaAppeared = await findCaptchaFrame(frame);
+
+        if (captchaAppeared) {
+            const captchaResolved = await findCaptchaResolvedFrame(frame);
+            if (captchaResolved) {
+                console.log('Captcha was resolved within the timeout.');
+                const frameAfterCaptcha = getLoginFrame(page) || frame;
+                await clickAvancar(frameAfterCaptcha);
+            }
+        }
+        
+        
         await frame.type('#password_input', password)
          await page.waitForTimeout(2000)
-        console.log('typing password: ' + password);
-        await frame.click('#validate_password_form_email-login > div.h-full.w-full.flex.flex-col.gap-4.justify-center.items-center > button')
+          await clickAvancar(frame);
+        // console.log('typing password: ' + password);
+        // await frame.click('#validate_password_form_email-login > div.h-full.w-full.flex.flex-col.gap-4.justify-center.items-center > button')
 
         await delay(2000);
         console.log("page url" + page.url());
@@ -251,13 +307,13 @@ async function addUserList(userId, data, io, SocketUsers) {
         return null;
     }
 
-    message = { "message": "A apagar a lista de compras...", "sucess": "true" };
-    var _emptyShoppingCartResult = await emptyShoppingCart(browser, page);
-    if (!_emptyShoppingCartResult.Success) {
-        await page.close()
-        await browser.close()
-        return null;
-    }
+    // message = { "message": "A apagar a lista de compras...", "sucess": "true" };
+    // var _emptyShoppingCartResult = await emptyShoppingCart(browser, page);
+    // if (!_emptyShoppingCartResult.Success) {
+    //     await page.close()
+    //     await browser.close()
+    //     return null;
+    // }
 
     message = { "message": "A adicionar produtos ao Continente...", "sucess": "true" };
     // SendUpdateToUser(userId, message);
