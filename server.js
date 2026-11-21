@@ -1510,8 +1510,10 @@ async function AddUserProductsToOnlineCartsV2mine() {
     var _storeIds = '1,2';
     var _userId = '9ff8224f-17cf-49fb-b555-05779a13eb40';
     
-    var _updatePrices = await fetch('https://lisie.app/api/UserLists/UpdateUserProducts?userid=' + _userId);
 
+    console.log("Updating prices for user:", _userId);
+    // var _updatePrices = await fetch('https://lisie.app/api/UserLists/UpdateUserProducts?userid=' + _userId);
+    // console.log("Prices update response:", _updatePrices);
     // return;
     
     var _myProducts = await fetch('https://lisie.app/api/online/GetStoresProductsToAddToOnlineStoreCart?userid=' + _userId + '&storeIds=' + _storeIds);
@@ -1674,7 +1676,9 @@ app.get("/GetProductMetadata", async (req, res) => {
 
 });
 
-AddUserProductsToOnlineCartsV2mine();
+(async () => {
+    await AddUserProductsToOnlineCartsV2mine();
+})();
 // (async () => {
 //     browser2 = await puppeteer.launch({
 //         // headless: 'new',

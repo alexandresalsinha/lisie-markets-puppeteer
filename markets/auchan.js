@@ -1,9 +1,10 @@
 // var io = require('socket.io')(server);
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
 var request = require('request');
 // var scrollPageToBottom = require('puppeteer-autoscroll-down');
 var fetch = require('node-fetch');
 // var server = require('http').Server(app);
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 var ioG;
 var SocketUsersG;
@@ -26,6 +27,8 @@ async function login(username, password) {
     log(`login() called for username="${username}"`);
     // const browser = await puppeteer.launch({ headless: false });
     log('Launching puppeteer browser (headless)...');
+    puppeteer.use(StealthPlugin());
+
     const browser = await puppeteer.launch({
         args: ['--no-sandbox',
             '--disable-setuid-sandbox',
@@ -184,14 +187,14 @@ async function addUserList(userId, data, io, SocketUsers) {
     // const navigationPromise = page.waitForNavigation()
     try {
         log('Navigating to https://www.auchan.pt ...');
-        var response = await page.goto('https://www.auchan.pt', {
-            timeout: 25000,
-            waitUntil: 'networkidle2',
-        });
-        log(`Home page loaded. status=${response && response.status && response.status()}`);
+        // var response = await page.goto('https://www.auchan.pt', {
+        //     timeout: 25000,
+        //     waitUntil: 'networkidle2',
+        // });
+        // log(`Home page loaded. status=${response && response.status && response.status()}`);
 
-        log('Clicking cookie accept button (#onetrust-accept-btn-handler)...');
-        await page.click('#onetrust-accept-btn-handler');
+        // log('Clicking cookie accept button (#onetrust-accept-btn-handler)...');
+        // await page.click('#onetrust-accept-btn-handler');
         // await page.waitFor(2000);
         log('Navigating to Login-OAuthLogin endpoint...');
         var responseLogin = await page.goto('https://www.auchan.pt/on/demandware.store/Sites-AuchanPT-Site/pt_PT/Login-OAuthLogin?oauthProvider=Salesforce&oauthLoginTargetEndPoint=0', {
@@ -229,6 +232,8 @@ async function addUserList(userId, data, io, SocketUsers) {
     try {
         log('Waiting for a second navigation to settle...');
         await page.waitForNavigation();
+        await page.click('#onetrust-accept-btn-handler');
+        // await page.waitFor(2000);
         log('Second navigation complete. Verifying login state...');
         //See if login was sucessful
         try {

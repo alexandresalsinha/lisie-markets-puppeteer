@@ -27,7 +27,7 @@ function getLoginFrame(page) {
   return page.frames().find((f) => /login\.continente\.pt/i.test(f.url()));
 }
 
-async function findCaptchaFrame(frame, timeout = 5000) {
+async function findCaptchaFrame(frame, timeout = 5000000) {
   const captchaSelector = '#RegistrationUser > div.altcha-container > altcha-widget > div';
   try {
     await frame.waitForSelector(captchaSelector, { visible: true, timeout });
