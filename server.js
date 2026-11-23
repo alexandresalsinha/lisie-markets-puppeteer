@@ -1666,7 +1666,7 @@ app.get("/GetProductMetadata", async (req, res) => {
         //     res.json(_continenteLoginResponse);
         //     break;
         case 4:
-            var _response = await intermarche.getProductMetadata(_productUrl, pageGlobal);
+            var _response = await intermarche.getProductMetadata(_productUrl);
             // res.set('Content-Type', 'text/html');
             res.send(_response);
             break;
@@ -1677,7 +1677,7 @@ app.get("/GetProductMetadata", async (req, res) => {
 });
 
 (async () => {
-    await AddUserProductsToOnlineCartsV2mine();
+    // await AddUserProductsToOnlineCartsV2mine();
 })();
 // (async () => {
 //     browser2 = await puppeteer.launch({

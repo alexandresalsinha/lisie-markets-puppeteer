@@ -521,27 +521,27 @@ async function getNewProducts(url) {
 }
 
 // var LastCookies = [];
-async function getProductMetadata(url, page) {
+async function getProductMetadata(url) {
     
-    // const args = [
-    //     "--disable-dev-shm-usage",
-    //     "--no-sandbox",
-    //     "--disable-setuid-sandbox",
-    //     "--disable-accelerated-2d-canvas",
-    //     "--disable-gpu",
-    //     "--lang=en-US,en"
-    // ];
+    const args = [
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--lang=en-US,en"
+    ];
 
-    // const browser = await puppeteer.launch({
-    //     // headless: 'new',
-    //     headless: false,
-    //     devtools: false, // disable dev tools
-    //     ignoreHTTPSErrors: true, // ignore https error
-    //     args,
-    //     ignoreDefaultArgs: ["--disable-extensions"],
-    // });
+    const browser = await puppeteer.launch({
+        // headless: 'new',
+        headless: false,
+        devtools: false, // disable dev tools
+        ignoreHTTPSErrors: true, // ignore https error
+        args,
+        ignoreDefaultArgs: ["--disable-extensions"],
+    });
 
-    // const page = await browser.newPage();
+    const page = await browser.newPage();
     try {
         console.log("GetProductMetadata - " + url);
         puppeteer.use(StealthPlugin());
@@ -577,10 +577,12 @@ async function getProductMetadata(url, page) {
             if (err) {
                 console.error(err);
             } else {
-                // file written successfully\
+                console.log("File written successfully");
             }
             });
-            // return;
+            await page.close()
+            await browser.close()
+            return datad;
 
             // await page.waitForNavigation()
             await delay(2000);
