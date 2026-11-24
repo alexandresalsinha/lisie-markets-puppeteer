@@ -1676,6 +1676,34 @@ app.get("/GetProductMetadata", async (req, res) => {
 
 });
 
+app.get("/GetSearchResults", async (req, res) => {
+
+    var _storeId = parseInt(req.query["storeId"]);
+    var _search = req.query["search"];
+
+
+    
+
+    switch (_storeId) {
+        // case 1:
+        //     var _loginResponse = await auchan.login(_username, _password);
+        //     res.json(_loginResponse);
+        //     break;
+        // case 2:
+        //     var _continenteLoginResponse = await continente.login(_username, _password);
+        //     res.json(_continenteLoginResponse);
+        //     break;
+        case 4:
+            var _response = await intermarche.getSearchResults(_search);
+            // res.set('Content-Type', 'text/html');
+            res.send(_response);
+            break;
+        default:
+            break;
+    }
+
+});
+
 (async () => {
     // await AddUserProductsToOnlineCartsV2mine();
 })();

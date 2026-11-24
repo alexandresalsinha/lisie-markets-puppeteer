@@ -534,7 +534,7 @@ async function getProductMetadata(url) {
 
     const browser = await puppeteer.launch({
         // headless: 'new',
-        headless: false,
+        headless: true,
         devtools: false, // disable dev tools
         ignoreHTTPSErrors: true, // ignore https error
         args,
@@ -574,6 +574,155 @@ async function getProductMetadata(url) {
 
             
             fs.writeFile('intermarche_html.html', datad, err => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log("File written successfully");
+            }
+            });
+            await page.close()
+            await browser.close()
+            return datad;
+
+            // await page.waitForNavigation()
+            await delay(2000);
+
+            const _url = await page.url();
+            console.log(_url);
+
+            //failed to restart from cookie
+            if (_url === 'https://loja-online.intermarche.pt/') {
+            await delay(2000);
+
+                var _acceptCookiesButtton = await page.$('#didomi-notice-agree-button')
+                await page.evaluate(e => e.click(), _acceptCookiesButtton);
+
+                await delay(2000);
+                console.log("Inputing postal code 2820-620");
+                await page.type('#storeLocator__inputSearchId', '2820-620', { delay: 2100 });
+                await delay(2000);
+
+                console.log("CLicking first result");
+                var _firstResult = await page.$('#storeLocator__suggestionsId');
+                var _divToCLick = await _firstResult.$('div');
+                await page.evaluate(e => e.click(), _divToCLick);
+                await page.waitForNavigation({ waitUntil: 'load', timeout: 30000 })
+                await delay(5000);
+                console.log('Navigating to https://loja-online.intermarche.pt' + url);
+                var response2 = await page.goto('https://loja-online.intermarche.pt' + url, {
+                    timeout: 25000,
+                    waitUntil: 'networkidle2',
+                });
+                console.log('saveCookiesToFile interCookies.json');
+                await saveCookiesToFile(page, 'interCookies.json');
+            }
+
+            try {
+                console.log('awaiting for .productDetail - timout 10000');
+                await page.waitForSelector('.productDetail', { visible: true, timeout: 10000 })
+            } catch (error) {
+                // await page.close()
+                // await browser.close()
+                console.log("ERROR", error);
+                console.log("Deleting interCookies.json")
+                // await deleteFile('interCookies.json');
+                return "";
+            }
+
+            //IMPORTANT: get html source in various ways
+            const _dataJSd = await (await page.$(".productDetail")).evaluate((content => content.outerHTML));
+            // const html = await page.content();
+            // const data3 = await page.evaluate(() => document.querySelector('*').outerHTML);
+            // const _dataJS = await (await page.$("html")).evaluate((content => content.innerHTML));
+            // const data = await page.content();
+            // let bodyHTML = await page.evaluate(() => document.body.innerHTML);
+            // // list_produits_serveur
+            // var responseText = await response.text();
+            finalData = _dataJSd;
+
+            finalData = await page.evaluate(() => {
+                const walk = doc => {
+                    doc.querySelectorAll("*").forEach(e => {
+                        if (e.shadowRoot) {
+                            e.innerHTML = walk(e.shadowRoot);
+                        }
+                    });
+                    return doc.innerHTML;
+                };
+                return walk(document.body);
+            });
+            // console.log(finalData);
+            saveToFile(finalData, 'outHtml.html');
+            // console.log(finalData);
+        } catch (error) {
+            console.log("ERROR", error);
+            console.log("Deleting interCookies.json")
+            // await deleteFile('interCookies.json');
+        }
+
+        // await page.close()
+        // await browser.close()
+        return finalData;
+    } catch (error) {
+        // await page.close()
+        // await browser.close()
+        return null;
+    }
+
+}
+async function getSearchResults(search) {
+    
+    const args = [
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--lang=en-US,en"
+    ];
+
+    const browser = await puppeteer.launch({
+        // headless: 'new',
+        headless: true,
+        devtools: false, // disable dev tools
+        ignoreHTTPSErrors: true, // ignore https error
+        args,
+        ignoreDefaultArgs: ["--disable-extensions"],
+    });
+
+    const page = await browser.newPage();
+    try {
+        console.log("getSearchResults - " + search);
+        puppeteer.use(StealthPlugin());
+
+        await page.setViewport({ width: 1280, height: 720 });
+
+        await page.setExtraHTTPHeaders({
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+            'upgrade-insecure-requests': '1',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9,en;q=0.8'
+        });
+        // await page.setViewport({ width: 1920, height: 1080 });
+
+        var finalData = [];
+
+        try {
+            // await loadCookiesFromFile(page, 'interCookies.json')
+
+            // var response = await page.goto('https://loja-online.intermarche.pt' + url, {
+            //     timeout: 50000,
+            //     waitUntil: 'networkidle0',
+            // });
+
+            console.log('https://www.intermarche.pt/search/' + encodeURIComponent(search));
+             var response = await page.goto('https://www.intermarche.pt/search/' + encodeURIComponent(search), {'timeout': 50000, 'waitUntil':'networkidle2'});
+            await waitTillHTMLRendered(page)
+            const datad = await page.content()
+
+            
+            fs.writeFile('intermarche_search.html', datad, err => {
             if (err) {
                 console.error(err);
             } else {
@@ -779,4 +928,8 @@ exports.addNewProducts = async function (onlineProductIds) {
 
 exports.getProductMetadata = async function (url, page) {
     return await getProductMetadata(url, page)
+};
+
+exports.getSearchResults = async function (search, page) {
+    return await getSearchResults(search, page)
 };
