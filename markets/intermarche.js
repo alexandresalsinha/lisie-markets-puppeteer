@@ -17,6 +17,12 @@ var userIdG;
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 puppeteer.use(StealthPlugin());
 
+// Use the user's installed Chrome instead of the bundled Chromium.
+// Chrome 136+ refuses automation on the default "User Data" directory, so a
+// dedicated persistent profile is used instead (cookies/sessions persist there).
+const CHROME_EXECUTABLE_PATH = (process.env['PROGRAMFILES'] || 'C:\\Program Files') + '\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME_USER_DATA_DIR = require('node:path').join(__dirname, '..', 'chrome-profile');
+
 async function addUserList(userId, data, io, SocketUsers) {
     ioG = io;
     SocketUsersG = SocketUsers;
@@ -25,9 +31,9 @@ async function addUserList(userId, data, io, SocketUsers) {
     var startDate = new Date();
     // const browser = await puppeteer.launch({ headless: false });
     const browser = await puppeteer.launch({
-        args: ['--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu']
+        executablePath: CHROME_EXECUTABLE_PATH,
+        userDataDir: CHROME_USER_DATA_DIR,
+        args: ['--disable-gpu']
     });
     const page = await browser.newPage();
     // page.on('console', msg => console.log(msg));
@@ -376,9 +382,9 @@ async function addProducts(page, products) {
 async function getAllCategories() {
     // const browser = await puppeteer.launch({ headless: false });
     const browser = await puppeteer.launch({
-        args: ['--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu']
+        executablePath: CHROME_EXECUTABLE_PATH,
+        userDataDir: CHROME_USER_DATA_DIR,
+        args: ['--disable-gpu']
     });
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
@@ -486,9 +492,9 @@ async function getAllCategories() {
 async function getNewProducts(url) {
     // const browser = await puppeteer.launch({ headless: false });
     const browser = await puppeteer.launch({
-        args: ['--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu']
+        executablePath: CHROME_EXECUTABLE_PATH,
+        userDataDir: CHROME_USER_DATA_DIR,
+        args: ['--disable-gpu']
     });
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
@@ -525,8 +531,6 @@ async function getProductMetadata(url) {
     
     const args = [
         "--disable-dev-shm-usage",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
         "--disable-accelerated-2d-canvas",
         "--disable-gpu",
         "--lang=en-US,en"
@@ -537,6 +541,8 @@ async function getProductMetadata(url) {
         headless: true,
         devtools: false, // disable dev tools
         ignoreHTTPSErrors: true, // ignore https error
+        executablePath: CHROME_EXECUTABLE_PATH,
+        userDataDir: CHROME_USER_DATA_DIR,
         args,
         ignoreDefaultArgs: ["--disable-extensions"],
     });
@@ -674,8 +680,6 @@ async function getSearchResults(search) {
     
     const args = [
         "--disable-dev-shm-usage",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
         "--disable-accelerated-2d-canvas",
         "--disable-gpu",
         "--lang=en-US,en"
@@ -686,6 +690,8 @@ async function getSearchResults(search) {
         headless: true,
         devtools: false, // disable dev tools
         ignoreHTTPSErrors: true, // ignore https error
+        executablePath: CHROME_EXECUTABLE_PATH,
+        userDataDir: CHROME_USER_DATA_DIR,
         args,
         ignoreDefaultArgs: ["--disable-extensions"],
     });
